@@ -3,6 +3,11 @@ uuid = "dd027654-807b-4d31-8f1a-ffac5c59a6b5"
 authors = ["Francesc Verdugo <fverdugo@cimne.upc.edu>"]
 version = "0.1.0"
 
+[deps]
+Gridap = "56d4f2e9-7ea1-5844-9cf6-b9c51ca7ce8e"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+PartitionedArrays = "5a9dfac6-5c52-46f7-8278-5e2210713be9"
+
 [compat]
 julia = "1.5"
 

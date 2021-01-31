@@ -1,6 +1,10 @@
+module PartitionedPoissonTests
+
 using PartitionedPoisson
 using Test
 
-@testset "PartitionedPoisson.jl" begin
-    # Write your tests here.
-end
+include("../precompile/gridap_warmup.jl")
+
+@time @testset "seq 2d" begin poisson(mode=:seq,nc=(4,4),np=(2,2)) end
+
+end # module
