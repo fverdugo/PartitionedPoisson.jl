@@ -240,10 +240,12 @@ function _poisson(parts,n,title)
   PArrays.toc!(t,"I,J (global)")
 
   # Create the range for rows
+  # TODO this calls xscan_all
   rows = PArrays.PRange(parts,ngdofs,nodofs)
   PArrays.toc!(t,"rows")
 
   # Add remote rows
+  # TODO this calls discover_parts_snd without neigbors
   PArrays.add_gids!(rows,I)
   PArrays.toc!(t,"rows (add_gid!)")
 
@@ -257,6 +259,7 @@ function _poisson(parts,n,title)
   PArrays.toc!(t,"cols")
 
   # Add remote cols
+  # TODO this calls discover_parts_snd without neigbors
   PArrays.add_gids!(cols,J)
   PArrays.toc!(t,"cols (add_gid!)")
 
@@ -274,7 +277,7 @@ function _poisson(parts,n,title)
   PArrays.toc!(t,"b (allocate)")
 
   # Fill rhs
-  # TODO this can be hidden
+  # TODO A more elegant way of doing this?
   PArrays.map_parts(
     b.values,dof_values.values,rows.partition,dofs.partition,first_gdof) do b1, b2, p1, p2, first_gdof
     offset = first_gdof - 1
