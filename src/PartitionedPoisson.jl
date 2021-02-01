@@ -51,8 +51,8 @@ function _poisson(parts,n,title)
 
   # Partitioned range of cells
   # with ghost layer
-  # TODO use neighbours internally
   cell_range = PArrays.PRange(parts,n,PArrays.with_ghost)
+  neighbors = cell_range.exchanger.parts_snd
   PArrays.toc!(t,"cell_range")
 
   # Local discrete models
@@ -102,7 +102,8 @@ function _poisson(parts,n,title)
   PArrays.toc!(t,"ldof_to_part, nodofs")
 
   # Find the global range of owned dofs
-  first_gdof, ngdofs = PArrays.xscan(+,reduce,nodofs,init=1)
+  first_gdof, ngdofsplus1 = PArrays.xscan(+,reduce,nodofs,init=1)
+  ngdofs = ngdofsplus1 - 1
   PArrays.toc!(t,"first_gdof, ngdofs")
 
   # Distribute gdofs to owned ones
@@ -191,7 +192,7 @@ function _poisson(parts,n,title)
   PArrays.toc!(t,"dof_partition")
 
   # Setup dof exchanger
-  dof_exchanger = PArrays.Exchanger(dof_partition,cell_range.exchanger.parts_snd)
+  dof_exchanger = PArrays.Exchanger(dof_partition,neighbors)
   PArrays.toc!(t,"dof_exchanger")
 
   # Setup dof range
@@ -234,11 +235,11 @@ function _poisson(parts,n,title)
   PArrays.toc!(t,"I,J (global)")
 
   # Create the range for rows
-  rows = PArrays.PRange(parts,nodofs)
+  rows = PArrays.PRange(parts,ngdofs,nodofs)
   PArrays.toc!(t,"rows")
 
   # Add remote rows
-  PArrays.add_gid!(rows,I)
+  PArrays.add_gids!(rows,I)
   PArrays.toc!(t,"rows (add_gid!)")
 
   # Move values to the owner part
@@ -251,7 +252,7 @@ function _poisson(parts,n,title)
   PArrays.toc!(t,"cols")
 
   # Add remote cols
-  PArrays.add_gid!(cols,J)
+  PArrays.add_gids!(cols,J)
   PArrays.toc!(t,"cols (add_gid!)")
 
   # Create the sparse matrix
