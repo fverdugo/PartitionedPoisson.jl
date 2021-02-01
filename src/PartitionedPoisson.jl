@@ -6,6 +6,7 @@ using Gridap.FESpaces
 using LinearAlgebra
 import PartitionedArrays
 const PArrays = PartitionedArrays
+using MPI
 
 export poisson
 
@@ -21,6 +22,10 @@ function poisson(;
 
   if ! (mode in (:seq,:mpi))
     throw(ArgumentError("mode=$mode is not a valid value for the kw-argument."))
+  end
+
+  if mode == :mpi && ! MPI.Initialized()
+    MPI.Init()
   end
 
   backend = mode == :seq ? PArrays.sequential : PArrays.mpi
