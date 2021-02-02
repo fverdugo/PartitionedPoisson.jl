@@ -239,29 +239,46 @@ function _poisson(parts,n,title)
   end
   PArrays.toc!(t,"I,J (global)")
 
-  # Create the range for rows
-  # TODO this calls xscan_all
-  rows = PArrays.PRange(parts,ngdofs,nodofs)
-  PArrays.toc!(t,"rows")
+  # Find the ghost rows
+  hrow_to_hdof = PArrays.touched_hids(dofs,I)
+  PArrays.toc!(t,"hrow_to_hdof")
 
-  # Add remote rows
-  # TODO this calls discover_parts_snd without neigbors
-  PArrays.add_gids!(rows,I)
-  PArrays.toc!(t,"rows (add_gid!)")
+  hrow_to_gid, hrow_to_part = PArrays.map_parts(
+    hrow_to_hdof, dof_partition) do hrow_to_hdof, dof_partition
+    hrow_to_ldof = view(dof_partition.hid_to_lid,hrow_to_hdof)
+    hrow_to_gdof = dof_partition.lid_to_gid[hrow_to_ldof]
+    hrow_to_part = dof_partition.lid_to_part[hrow_to_ldof]
+    hrow_to_gdof, hrow_to_part
+  end
+  PArrays.toc!(t,"hrow_to_gid, hrow_to_part")
+
+  # Create the range for rows
+  rows = PArrays.PRange(
+    parts,ngdofs,nodofs,first_gdof,hrow_to_gid,hrow_to_part,neighbors)
+  PArrays.toc!(t,"rows")
 
   # Move values to the owner part
   # since we have integrated only over owned cells
   PArrays.assemble!(I,J,C,rows)
   PArrays.toc!(t,"I,J,C (assemble!)")
 
-  # Create the range for rows
-  cols = copy(rows)
-  PArrays.toc!(t,"cols")
+  # Find the ghost cols
+  hcol_to_hdof = PArrays.touched_hids(dofs,J)
+  PArrays.toc!(t,"hcol_to_hdof")
 
-  # Add remote cols
-  # TODO this calls discover_parts_snd without neigbors
-  PArrays.add_gids!(cols,J)
-  PArrays.toc!(t,"cols (add_gid!)")
+  hcol_to_gid, hcol_to_part = PArrays.map_parts(
+    hcol_to_hdof, dof_partition) do hcol_to_hdof, dof_partition
+    hcol_to_ldof = view(dof_partition.hid_to_lid,hcol_to_hdof)
+    hcol_to_gdof = dof_partition.lid_to_gid[hcol_to_ldof]
+    hcol_to_part = dof_partition.lid_to_part[hcol_to_ldof]
+    hcol_to_gdof, hcol_to_part
+  end
+  PArrays.toc!(t,"hcol_to_gid, hcol_to_part")
+
+  # Create the range for cols
+  cols = PArrays.PRange(
+    parts,ngdofs,nodofs,first_gdof,hcol_to_gid,hcol_to_part,neighbors)
+  PArrays.toc!(t,"cols")
 
   # Create the sparse matrix
   A_exchanger = PArrays.empty_exchanger(parts)
@@ -330,19 +347,14 @@ function _poisson(parts,n,title)
 
   display(t)
 
-  # TODO allow to append
-  PArrays.print_timer(title,t)
+  PArrays.print_timer("$(title)_timings.txt",t)
 
-  # TODO
-  # A nicer way to add data in csv format
-  PArrays.map_parts(parts) do part
-    if part == PArrays.MAIN
-      @show errnorm
-      open(title,"a") do io
-        println(io,"\"errnorm\"; $errnorm")
-      end
-    end
-  end
+  result_file = "$(title)_results.txt"
+  PArrays.print_csv(parts,errnorm,"errnorm",result_file,write=true)
+  PArrays.print_csv(parts,ngdofs,"ngdofs",result_file,append=true)
+  PArrays.print_csv(parts,length(cell_range),"ngcells",result_file,append=true)
+
+  nothing
 end
 
 end # module
