@@ -14,6 +14,7 @@ PartitionedArrays = "5a9dfac6-5c52-46f7-8278-5e2210713be9"
 [compat]
 Gridap = "0.15"
 MPI = "0.16"
+PartitionedArrays = "0.1"
 julia = "1.5"
 
 [extras]
