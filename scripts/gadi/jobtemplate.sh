@@ -5,6 +5,8 @@
 #PBS -l mem={{mem}}
 #PBS -N {{{name}}}
 #PBS -l wd
+#PBS -o {{{o}}}
+#PBS -e {{{e}}} 
 
 module load openmpi
 

@@ -12,6 +12,8 @@ function jobdict(params)
   nc = (ncx,ncx,ncx)
   Dict(
   "q" => "normal",
+  "o" => datadir("gadi",jobname(params,"o.txt")),
+  "e" => datadir("gadi",jobname(params,"e.txt")),
   "walltime" => "00:05:00",
   "ncpus" => prod(np),
   "mem" => "20gb",
@@ -41,8 +43,4 @@ for params in dicts
     render(io,template,jobdict(params))
   end
 end
-
-
-
-
 

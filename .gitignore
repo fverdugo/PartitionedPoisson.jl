@@ -8,4 +8,6 @@ Manifest.toml
 docs/build/
 tmp/
 data/gadi/*.sh
+data/gadi/*.o.txt
+data/gadi/*.e.txt
 plots
