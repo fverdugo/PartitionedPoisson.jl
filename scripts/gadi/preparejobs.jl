@@ -28,7 +28,7 @@ function jobdict(params)
 end
 
 allparams = Dict(
- :npx => [2,3,4],
+ :npx => map(i->ceil(Int,2^(i/3)*2),[1,3,4,5,6,7,8,9,10]),
  :ncx => 250,
  :nr => 3
  )
