@@ -16,7 +16,7 @@ function jobdict(params)
   "e" => datadir("gadi",jobname(params,"e.txt")),
   "walltime" => "00:15:00",
   "ncpus" => prod(np)>48 ? ceil(Int,prod(np)/48)*48 : prod(np),
-  "mem" => "150gb",
+  "mem" => "$(ceil(Int,(14/8)*prod(np)))gb",
   "name" => jobname(params),
   "nc" => nc,
   "n" => prod(np),
