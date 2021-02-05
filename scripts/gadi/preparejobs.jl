@@ -2,7 +2,7 @@
 using Mustache
 using DrWatson
 
-jobname(args...) = savename(args...;connector="")
+jobname(args...) = replace(savename(args...;connector=""),"="=>"")
           
 function jobdict(params)
   ncx = params[:ncx]
@@ -14,22 +14,23 @@ function jobdict(params)
   "q" => "normal",
   "o" => datadir("gadi",jobname(params,"o.txt")),
   "e" => datadir("gadi",jobname(params,"e.txt")),
-  "walltime" => "00:05:00",
-  "ncpus" => prod(np),
-  "mem" => "20gb",
+  "walltime" => "00:15:00",
+  "ncpus" => prod(np)>48 ? ceil(Int,prod(np)/48)*48 : prod(np),
+  "mem" => "150gb",
   "name" => jobname(params),
   "nc" => nc,
   "n" => prod(np),
   "np" => np,
   "nr" => nr,
   "projectdir" => projectdir(),
+  "title" => datadir("gadi",jobname(params)),
   "sysimage" => projectdir("$(projectname()).so")
   )
 end
 
 allparams = Dict(
- :npx => map(i->ceil(Int,2^(i/3)*2),[1,3,4,5,6,7,8,9,10]),
- :ncx => 250,
+ :npx => map(i->ceil(Int,2^(i/3)*2),[0,1,3,4,5,6,7,8,9,10]),
+ :ncx => 300,
  :nr => 3
  )
 

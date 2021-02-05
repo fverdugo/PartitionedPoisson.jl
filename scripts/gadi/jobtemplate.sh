@@ -10,6 +10,6 @@
 
 module load openmpi
 
-$HOME/.julia/bin/mpiexecjl --map-by numa:SPAN --project={{{projectdir}}} -n {{n}}\
+$HOME/.julia/bin/mpiexecjl --project={{{projectdir}}} -n {{n}}\
     julia -J {{{sysimage}}} -O3 --check-bounds=no -e\
-      'using PartitionedPoisson; poisson(mode=:mpi,nc={{nc}},np={{np}},nr={{nr}},title="{{{name}}}")'
+      'using PartitionedPoisson; poisson(mode=:mpi,nc={{nc}},np={{np}},nr={{nr}},title="{{{title}}}")'
