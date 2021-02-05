@@ -1,0 +1,13 @@
+#!/bin/bash
+#PBS -q {{q}} 
+#PBS -l walltime={{walltime}}
+#PBS -l ncpus={{ncpus}}
+#PBS -l mem={{mem}}
+#PBS -N {{{name}}}
+#PBS -l wd
+
+module load openmpi
+
+$HOME/.julia/bin/mpiexecjl --map-by numa:SPAN --project={{{projectdir}}} -n {{n}}\
+    julia -J {{{sysimage}}} -O3 --check-bounds=no -e\
+      'using PartitionedPoisson; poisson(mode=:mpi,nc={{nc}},np={{np}},nr={{nr}},title="{{{name}}}")'
