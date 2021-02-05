@@ -7,6 +7,7 @@ using LinearAlgebra
 import PartitionedArrays
 const PArrays = PartitionedArrays
 using MPI
+using FileIO
 
 export poisson
 
@@ -30,20 +31,21 @@ function poisson(;
 
   backend = mode == :seq ? PArrays.sequential : PArrays.mpi
   parts = PArrays.get_part_ids(backend,np)
-  for r in 1:nr
-    str_r = lpad(r,ceil(Int,log10(nr)),'0')
-    title_r = "$(title)_r$(str_r)"
-    _poisson(parts,nc,title_r)
+  for ir in 1:nr
+    str_r = lpad(ir,ceil(Int,log10(nr)),'0')
+    title_r = "$(title)_ir$(str_r)"
+    _poisson(parts,nc,title_r,ir)
   end
 end
 
-function _poisson(parts,n,title)
+function _poisson(parts,nc,title,ir)
 
   domain_2d = (0,1,0,1)
   domain_3d = (0,1,0,1,0,1)
+  np = size(parts)
 
-  domain = length(n) == 3 ? domain_3d : domain_2d
-  u = length(n) == 3 ? u_3d : u_2d
+  domain = length(nc) == 3 ? domain_3d : domain_2d
+  u = length(nc) == 3 ? u_3d : u_2d
   order = 1
 
   t = PArrays.PTimer(parts)
@@ -51,20 +53,21 @@ function _poisson(parts,n,title)
 
   # Partition of the Cartesian ids
   # with ghost layer
-  cell_gcis = PArrays.PCartesianIndices(parts,n,PArrays.with_ghost)
+  cell_gcis = PArrays.PCartesianIndices(parts,nc,PArrays.with_ghost)
   PArrays.toc!(t,"cell_gcis")
 
   # Partitioned range of cells
   # with ghost layer
-  cell_range = PArrays.PRange(parts,n,PArrays.with_ghost)
+  cell_range = PArrays.PRange(parts,nc,PArrays.with_ghost)
   neighbors = cell_range.exchanger.parts_snd
+  ngcells = length(cell_range)
   PArrays.toc!(t,"cell_range")
 
   # Local discrete models
   model = PArrays.map_parts(cell_gcis) do gcis
     cmin = first(gcis)
     cmax = last(gcis)
-    desc = CartesianDescriptor(domain,n)
+    desc = CartesianDescriptor(domain,nc)
     CartesianDiscreteModel(desc,cmin,cmax)
   end
   PArrays.toc!(t,"model")
@@ -347,12 +350,17 @@ function _poisson(parts,n,title)
 
   display(t)
 
-  PArrays.print_timer("$(title)_timings.txt",t)
-
-  result_file = "$(title)_results.txt"
-  PArrays.print_csv(parts,errnorm,"errnorm",result_file,write=true)
-  PArrays.print_csv(parts,ngdofs,"ngdofs",result_file,append=true)
-  PArrays.print_csv(parts,length(cell_range),"ngcells",result_file,append=true)
+  PArrays.map_main(t.data) do data
+    out = Dict{String,Any}()
+    merge!(out,data)
+    out["errnorm"] = errnorm
+    out["ngdofs"] = ngdofs
+    out["ngcells"] = ngcells
+    out["nc"] = nc
+    out["np"] = np
+    out["ir"] = ir
+    save("$title.bson",out)
+  end
 
   nothing
 end
