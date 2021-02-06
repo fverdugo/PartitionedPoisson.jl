@@ -127,9 +127,9 @@ version = "0.8.3"
 
 [[DrWatson]]
 deps = ["Dates", "FileIO", "LibGit2", "Pkg", "Random", "Requires", "UnPack"]
-git-tree-sha1 = "b9700d64ee0d1010dd71afed9fae7147291aaabe"
+git-tree-sha1 = "e0dc5a9c7802730967cc56c17a733fe52775b2ee"
 uuid = "634d3b9d-ee7a-5ddf-bec9-22491ea816e1"
-version = "1.17.0"
+version = "1.18.0"
 
 [[FastGaussQuadrature]]
 deps = ["LinearAlgebra", "SpecialFunctions", "StaticArrays"]
