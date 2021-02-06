@@ -16,6 +16,7 @@ PackageCompiler = "9b87118b-4619-50d2-8e1e-99f35a4d4d9d"
 PartitionedArrays = "5a9dfac6-5c52-46f7-8278-5e2210713be9"
 
 [compat]
+BSON = "0.2"
 Gridap = "0.15"
 IterativeSolvers = "0.9"
 MPI = "0.16"
