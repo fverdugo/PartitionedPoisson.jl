@@ -21,3 +21,4 @@ l = first(df.ngdofs)/25e3
 plot!([l,l],collect(ylims(plt)),xaxis=:log, yaxis=:log,linestyle=:dash, label="25KDOFs/core")
 
 savefig(plotsdir("gadi","total_scaling.pdf"))
+savefig(plotsdir("gadi","total_scaling.png"))
