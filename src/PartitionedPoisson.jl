@@ -19,7 +19,8 @@ function poisson(;
   nc::Tuple=(10,10,10),
   np::Tuple=(2,2,2),
   nr::Int=1,
-  title::String="seq")
+  title::String="seq",
+  verbose::Bool=false)
 
   if ! (mode in (:seq,:mpi))
     throw(ArgumentError("mode=$mode is not a valid value for the kw-argument."))
@@ -34,11 +35,11 @@ function poisson(;
   for ir in 1:nr
     str_r = lpad(ir,ceil(Int,log10(nr)),'0')
     title_r = "$(title)_ir$(str_r)"
-    _poisson(parts,nc,title_r,ir)
+    _poisson(parts,nc,title_r,ir,verbose)
   end
 end
 
-function _poisson(parts,nc,title,ir)
+function _poisson(parts,nc,title,ir,verbose)
 
   domain_2d = (0,1,0,1)
   domain_3d = (0,1,0,1,0,1)
@@ -48,7 +49,7 @@ function _poisson(parts,nc,title,ir)
   u = length(nc) == 3 ? u_3d : u_2d
   order = 1
 
-  t = PArrays.PTimer(parts)
+  t = PArrays.PTimer(parts,verbose=verbose)
   PArrays.tic!(t)
 
   # Partition of the Cartesian ids

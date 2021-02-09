@@ -7,7 +7,7 @@
 Manifest.toml
 docs/build/
 tmp/
-data/gadi/*.sh
-data/gadi/*.o.txt
-data/gadi/*.e.txt
-plots
+analysis/data/gadi/*.sh
+analysis/data/gadi/*.o.txt
+analysis/data/gadi/*.e.txt
+analysis/plots
