@@ -300,7 +300,7 @@ version = "1.0.15"
 
 [[PartitionedArrays]]
 deps = ["IterativeSolvers", "LinearAlgebra", "MPI", "Printf", "SparseArrays"]
-git-tree-sha1 = "0746b05cb61f5d14e1e1e59c6d675ce98aec472f"
+git-tree-sha1 = "db724ebe17312ae21836903bcc97cda9dd70e278"
 repo-rev = "master"
 repo-url = "https://github.com/fverdugo/PartitionedArrays.jl.git"
 uuid = "5a9dfac6-5c52-46f7-8278-5e2210713be9"
