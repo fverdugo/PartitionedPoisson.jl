@@ -14,7 +14,7 @@ PackageCompiler = "9b87118b-4619-50d2-8e1e-99f35a4d4d9d"
 PartitionedArrays = "5a9dfac6-5c52-46f7-8278-5e2210713be9"
 
 [compat]
-BSON = "0.2"
+BSON = "0.2, 0.3"
 FileIO = "1.4"
 Gridap = "0.15"
 IterativeSolvers = "0.9"
