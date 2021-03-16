@@ -1,16 +1,15 @@
 # This file is machine-generated - editing it directly is not advised
 
 [[AbstractTrees]]
-deps = ["Markdown"]
-git-tree-sha1 = "33e450545eaf7699da1a6e755f9ea65f14077a45"
+git-tree-sha1 = "03e0550477d86222521d254b741d470ba17ea0b5"
 uuid = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
-version = "0.3.3"
+version = "0.3.4"
 
 [[ArrayInterface]]
-deps = ["IfElse", "LinearAlgebra", "Requires", "SparseArrays"]
-git-tree-sha1 = "b9c3166c0124f44135419a394f42912c14dcbd80"
+deps = ["IfElse", "LinearAlgebra", "Requires", "SparseArrays", "Static"]
+git-tree-sha1 = "da557609446152beb6ee134683d7b79ece129eae"
 uuid = "4fba245c-0d91-5ea0-9b3e-6abc04ee57a9"
-version = "3.0.1"
+version = "3.1.5"
 
 [[ArrayLayouts]]
 deps = ["Compat", "FillArrays", "LinearAlgebra", "SparseArrays"]
@@ -40,9 +39,9 @@ version = "0.13.0"
 
 [[ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "53fed426c9af1eb68e63b3999e96454c2db79757"
+git-tree-sha1 = "de4f08843c332d355852721adb1592bce7924da3"
 uuid = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
-version = "0.9.27"
+version = "0.9.29"
 
 [[CodecZlib]]
 deps = ["TranscodingStreams", "Zlib_jll"]
@@ -117,15 +116,15 @@ version = "0.8.3"
 
 [[FastGaussQuadrature]]
 deps = ["LinearAlgebra", "SpecialFunctions", "StaticArrays"]
-git-tree-sha1 = "06deaf05493f996135da3282a3c18f90144ad8df"
+git-tree-sha1 = "5829b25887e53fb6730a9df2ff89ed24baa6abf6"
 uuid = "442a2c76-b920-505d-bb47-c5924d526838"
-version = "0.4.6"
+version = "0.4.7"
 
 [[FileIO]]
-deps = ["Pkg"]
-git-tree-sha1 = "fee8955b9dfa7bec67117ef48085fb2b559b9c22"
+deps = ["Pkg", "Requires", "UUIDs"]
+git-tree-sha1 = "9cdfbf5c0ed88ad0dcdb02544416c8e5a73addef"
 uuid = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
-version = "1.4.5"
+version = "1.6.4"
 
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays"]
@@ -141,15 +140,15 @@ version = "2.8.0"
 
 [[ForwardDiff]]
 deps = ["CommonSubexpressions", "DiffResults", "DiffRules", "NaNMath", "Random", "SpecialFunctions", "StaticArrays"]
-git-tree-sha1 = "d48a40c0f54f29a5c8748cfb3225719accc72b77"
+git-tree-sha1 = "c68fb7481b71519d313114dca639b35262ff105f"
 uuid = "f6369f11-7733-5829-9624-2563aa707210"
-version = "0.10.16"
+version = "0.10.17"
 
 [[Gridap]]
-deps = ["AbstractTrees", "BSON", "BlockArrays", "Combinatorics", "DocStringExtensions", "FastGaussQuadrature", "FileIO", "FillArrays", "ForwardDiff", "JLD2", "JSON", "LineSearches", "LinearAlgebra", "NLsolve", "QuadGK", "SparseArrays", "StaticArrays", "Test", "WriteVTK"]
-git-tree-sha1 = "4d4e980c2d658fb0547382970a15feed87a44555"
+deps = ["AbstractTrees", "BSON", "BlockArrays", "Combinatorics", "DocStringExtensions", "FastGaussQuadrature", "FileIO", "FillArrays", "ForwardDiff", "JLD2", "JSON", "LineSearches", "LinearAlgebra", "NLsolve", "QuadGK", "Random", "SparseArrays", "StaticArrays", "Test", "WriteVTK"]
+git-tree-sha1 = "bf980da195bcaa7d956d3e4a243bb53196b393ef"
 uuid = "56d4f2e9-7ea1-5844-9cf6-b9c51ca7ce8e"
-version = "0.15.1"
+version = "0.15.2"
 
 [[IfElse]]
 git-tree-sha1 = "28e837ff3e7a6c3cdb252ce49fb412c8eb3caeef"
@@ -168,9 +167,9 @@ version = "0.9.0"
 
 [[JLD2]]
 deps = ["CodecZlib", "DataStructures", "MacroTools", "Mmap", "Pkg", "Printf", "Requires", "UUIDs"]
-git-tree-sha1 = "9378bd9d392569c94d1722d4926ef9857b8f76fd"
+git-tree-sha1 = "b8343a7f96591404ade118b3a7014e1a52062465"
 uuid = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
-version = "0.3.3"
+version = "0.4.2"
 
 [[JLLWrappers]]
 git-tree-sha1 = "a431f5f2ca3f4feef3bd7a5e94b8b8d4f2f647a0"
@@ -276,9 +275,9 @@ uuid = "efe28fd5-8261-553b-a9e1-b2916fc3738e"
 version = "0.5.3+4"
 
 [[OrderedCollections]]
-git-tree-sha1 = "d45739abcfc03b51f6a42712894a593f74c80a23"
+git-tree-sha1 = "4fa2ba51070ec13fcc7517db714445b4ab986bdf"
 uuid = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
-version = "1.3.3"
+version = "1.4.0"
 
 [[PackageCompiler]]
 deps = ["Libdl", "Pkg", "UUIDs"]
@@ -294,17 +293,17 @@ version = "0.12.2"
 
 [[Parsers]]
 deps = ["Dates"]
-git-tree-sha1 = "50c9a9ed8c714945e01cd53a21007ed3865ed714"
+git-tree-sha1 = "223a825cccef2228f3fdbf2ecc7ca93363059073"
 uuid = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
-version = "1.0.15"
+version = "1.0.16"
 
 [[PartitionedArrays]]
-deps = ["IterativeSolvers", "LinearAlgebra", "MPI", "Printf", "SparseArrays"]
-git-tree-sha1 = "0746b05cb61f5d14e1e1e59c6d675ce98aec472f"
+deps = ["IterativeSolvers", "LinearAlgebra", "MPI", "Printf", "SparseArrays", "SparseMatricesCSR"]
+git-tree-sha1 = "413dace6a80b991a44fde4ba3c031d0688945ad6"
 repo-rev = "master"
 repo-url = "https://github.com/fverdugo/PartitionedArrays.jl.git"
 uuid = "5a9dfac6-5c52-46f7-8278-5e2210713be9"
-version = "0.2.0"
+version = "0.2.1"
 
 [[Pkg]]
 deps = ["Dates", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "UUIDs"]
@@ -340,9 +339,9 @@ version = "1.0.0"
 
 [[Requires]]
 deps = ["UUIDs"]
-git-tree-sha1 = "cfbac6c1ed70c002ec6361e7fd334f02820d6419"
+git-tree-sha1 = "4036a3bd08ac7e968e27c203d45f5fff15020621"
 uuid = "ae029012-a4dd-5104-9daa-d747884805df"
-version = "1.1.2"
+version = "1.1.3"
 
 [[SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
@@ -361,11 +360,23 @@ uuid = "6462fe0b-24de-5631-8697-dd941f90decc"
 deps = ["LinearAlgebra", "Random"]
 uuid = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
+[[SparseMatricesCSR]]
+deps = ["LinearAlgebra", "SparseArrays"]
+git-tree-sha1 = "2f910b79d547e36ab505dd21eb19f0addfc08715"
+uuid = "a0a7dd2c-ebf4-11e9-1f05-cf50bc540ca1"
+version = "0.6.0"
+
 [[SpecialFunctions]]
 deps = ["ChainRulesCore", "OpenSpecFun_jll"]
-git-tree-sha1 = "75394dbe2bd346beeed750fb02baa6445487b862"
+git-tree-sha1 = "5919936c0e92cff40e57d0ddf0ceb667d42e5902"
 uuid = "276daf66-3868-5448-9aa4-cd146d93841b"
-version = "1.2.1"
+version = "1.3.0"
+
+[[Static]]
+deps = ["IfElse"]
+git-tree-sha1 = "ddec5466a1d2d7e58adf9a427ba69763661aacf6"
+uuid = "aedffcd0-7271-4cad-89d0-dc628f76c6d3"
+version = "0.2.4"
 
 [[StaticArrays]]
 deps = ["LinearAlgebra", "Random", "Statistics"]
@@ -401,9 +412,9 @@ uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 
 [[WriteVTK]]
 deps = ["Base64", "CodecZlib", "FillArrays", "LightXML", "Random", "TranscodingStreams"]
-git-tree-sha1 = "0dbebacd41c038791cc701321a77b393277f7f9c"
+git-tree-sha1 = "37eef911a9c5211e0ae4362dc0477cfe6c537ffa"
 uuid = "64499a7a-5c06-52f2-abe2-ccb03c286192"
-version = "1.8.1"
+version = "1.9.1"
 
 [[XML2_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Libiconv_jll", "Pkg", "Zlib_jll"]
