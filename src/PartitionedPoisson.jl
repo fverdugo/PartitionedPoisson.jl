@@ -1,9 +1,11 @@
 module PartitionedPoisson
 
 using Gridap
+using Gridap.Algebra
 using Gridap.Geometry
 using Gridap.FESpaces
 using LinearAlgebra
+using SparseArrays
 import PartitionedArrays
 const PArrays = PartitionedArrays
 using MPI
@@ -216,22 +218,38 @@ function _poisson(parts,nc,title,ir,verbose)
   end
   PArrays.toc!(t,"Ω, dΩ")
 
-  # Integrate the coo vectors
-  I,J,C,vec = PArrays.map_parts(Ω,dΩ,U,V,ldof_to_gdof) do Ω,dΩ,U,V,ldof_to_gdof
-    dv = get_cell_shapefuns(V)
-    du = get_cell_shapefuns_trial(U)
+  # (local) FE Assembly, where we generate the sub-assembled matrix and vector
+  # We do not compress the sparse matrix at this point
+  # since communication needs to happen
+  # before compression of the matrix for performance reasons.
+  # We use COO format here since we have the communications implemented in this format only.
+  # TODO implement and use communications in the CSRR format
+  # to save a significant amount of memory.
+  I,J,C,vec = PArrays.map_parts(U,V,dΩ) do U,V,dΩ
+
+    dv = get_fe_basis(V)
+    du = get_trial_fe_basis(U)
     cellmat = ∫( ∇(du)⋅∇(dv) )dΩ
     cellvec = 0
     uhd = zero(U)
-    matvecdata = collect_cell_matrix_and_vector(cellmat,cellvec,uhd)
-    assem = SparseMatrixAssembler(U,V)
-    ncoo = count_matrix_and_vector_nnz_coo(assem,matvecdata)
-    I = zeros(Int,ncoo)
-    J = zeros(Int,ncoo)
-    C = zeros(Float64,ncoo)
-    vec = zeros(Float64,num_free_dofs(V))
-    fill_matrix_and_vector_coo_numeric!(I,J,C,vec,assem,matvecdata)
-    I,J,C,vec
+    matvecdata = collect_cell_matrix_and_vector(U,V,cellmat,cellvec,uhd)
+
+    Tm = SparseMatrixCSC{Float64,Int32}
+    Tv = Vector{Float64}
+
+    a = SparseMatrixAssembler(
+      SparseMatrixBuilder(Tm,nothing), # hack: nothing will select the coo pipeline. TODO enhance this.
+      ArrayBuilder(Tv),
+      U,
+      V)
+
+    m1 = nz_counter(get_matrix_builder(a),(get_rows(a),get_cols(a)))
+    v1 = nz_counter(get_vector_builder(a),(get_rows(a),))
+    symbolic_loop_matrix_and_vector!(m1,v1,a,matvecdata)
+    m2 = nz_allocation(m1)
+    v2 = nz_allocation(v1)
+    numeric_loop_matrix_and_vector!(m2,v2,a,matvecdata)
+    I,J,C,vec = m2.I,m2.J,m2.V,v2
   end
   PArrays.toc!(t,"I,J,C,vec")
 
@@ -346,7 +364,6 @@ function _poisson(parts,nc,title,ir,verbose)
   r .= r .- b
   PArrays.toc!(t,"r (-b)")
 
-  errnorm = norm(r)
   PArrays.toc!(t,"norm(r)")
 
   display(t)
