@@ -364,6 +364,7 @@ function _poisson(parts,nc,title,ir,verbose)
   r .= r .- b
   PArrays.toc!(t,"r (-b)")
 
+  errnorm = norm(r)
   PArrays.toc!(t,"norm(r)")
 
   display(t)
