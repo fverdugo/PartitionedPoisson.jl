@@ -311,32 +311,18 @@ function _poisson(parts,nc,title,ir,verbose)
   dof_values = PArrays.PVector(vec,dofs)
   PArrays.toc!(t,"dof_values")
 
+  # Import and add remote contributions
+  PArrays.assemble!(dof_values)
+  PArrays.toc!(t,"dof_values (assemble!)")
+
   # Allocate rhs aligned with the matrix
   b = PArrays.PVector(0.0,rows)
   PArrays.toc!(t,"b (allocate)")
 
   # Fill rhs
-  # TODO A more elegant way of doing this?
-  PArrays.map_parts(
-    b.values,dof_values.values,rows.partition,dofs.partition,first_gdof) do b1, b2, p1, p2, first_gdof
-    offset = first_gdof - 1
-    for i in p1.oid_to_lid
-      gdof = p1.lid_to_gid[i]
-      odof = gdof-offset
-      ldof = p2.oid_to_lid[odof]
-      b1[i] = b2[ldof]
-    end
-    for i in p1.hid_to_lid
-      gdof = p1.lid_to_gid[i]
-      ldof = p2.gid_to_lid[gdof]
-      b1[i] = b2[ldof]
-    end
-  end
+  # only needed to fill owned values since we have already assembled
+  b .= dof_values
   PArrays.toc!(t,"b (fill)")
-
-  # Import and add remote contributions
-  PArrays.assemble!(b)
-  PArrays.toc!(t,"b (assemble!)")
 
   # Interpolate exact solution
   # (this is aligned with the FESpace)
