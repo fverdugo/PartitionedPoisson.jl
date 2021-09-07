@@ -10,6 +10,8 @@ import PartitionedArrays
 const PArrays = PartitionedArrays
 using MPI
 using FileIO
+using GridapPETSc
+
 
 export poisson
 
@@ -303,6 +305,8 @@ function _poisson(parts,nc,title,ir,verbose)
   PArrays.toc!(t,"cols")
 
   # Create the sparse matrix
+  # we use an empty exchanger since we do not need to assemble the matrix
+  # again
   A_exchanger = PArrays.empty_exchanger(parts)
   A = PArrays.PSparseMatrix(I,J,C,rows,cols,A_exchanger,ids=:global)
   PArrays.toc!(t,"A")
@@ -312,6 +316,7 @@ function _poisson(parts,nc,title,ir,verbose)
   PArrays.toc!(t,"dof_values")
 
   # Import and add remote contributions
+  # TODO this leads to more communication than strictly needed.
   PArrays.assemble!(dof_values)
   PArrays.toc!(t,"dof_values (assemble!)")
 
@@ -335,9 +340,9 @@ function _poisson(parts,nc,title,ir,verbose)
   x = PArrays.PVector(0.0,cols)
   PArrays.toc!(t,"x (allocate)")
 
-  #### Fill
-  #### only needed to fill owned values
-  #### since A*x will do the exchange
+  # Fill
+  # only needed to fill owned values
+  # since A*x will do the exchange
   x .= dof_values
   PArrays.toc!(t,"x (fill)")
 
@@ -353,6 +358,86 @@ function _poisson(parts,nc,title,ir,verbose)
   errnorm = norm(r)
   PArrays.toc!(t,"norm(r)")
 
+  ## Now, we assemble the system with PETSc
+  GridapPETSc.Init(args=split("-info"))
+
+  # Find nnz per row at each proc
+  # TODO a better way to find this? It is not fair to use an already assembled matrix
+  # in particular this can be done from the symbolic CSRR representation
+  part_to_nnz = PArrays.map_parts(A.values) do Al
+    row_to_nnz = zeros(Int32,size(Al,1))
+    for (row,_,_) in PArrays.nziterator(Al)
+      row_to_nnz[row] += Int32(1)
+    end
+    maximum(row_to_nnz)
+  end
+
+  # TODO hide explicit dispatch on the backend
+  backend = PArrays.get_backend(part_to_nnz)
+  if isa(backend,PArrays.MPIBackend)
+    l_nz = get_part(part_to_nnz)
+    norows = get_part(PArrays.map_parts(PArrays.num_oids,rows.partition))
+    nocols = get_part(PArrays.map_parts(PArrays.num_oids,cols.partition))
+  elseif isa(backend,PArrays.SequentialBackend)
+    l_nz = reduce(max,part_to_nnz,init=Int32(0))
+    norows = PArrays.num_gids(rows)
+    nocols = PArrays.num_gids(cols)
+  end
+  ngrows = PArrays.num_gids(rows)
+  ngcols = PArrays.num_gids(cols)
+  d_nz = l_nz # TODO pessimistic, to fix this we need to assemble in PETSc format
+  d_nnz = C_NULL
+  o_nz = l_nz # TODO pessimistic, to fix this we need to assemble in PETSc format
+  o_nnz = C_NULL
+  comm = MPI.COMM_WORLD
+
+  # TODO implement this constructor
+  Apetsc = PETScMatrix()
+  @check_error_code PETSC.MatCreateAIJ(
+    comm,norows,nocols,ngrows,ngcols,d_nz,d_nnz,o_nz,o_nnz,Apetsc.mat)
+  GridapPETSc.Init(Apetsc)
+
+  bpetsc = PETScVector()
+
+  # Assembly directly on PETSc objects
+  PArrays.map_parts(
+    U,V,dΩ,dofs.partition) do U,V,dΩ,dofs
+
+    dv = get_fe_basis(V)
+    du = get_trial_fe_basis(U)
+    cellmat = ∫( ∇(du)⋅∇(dv) )dΩ
+    cellvec = 0
+    uhd = zero(U)
+    matvecdata = collect_cell_matrix_and_vector(U,V,cellmat,cellvec,uhd)
+
+    Tm = typeof(Apetsc)
+    Tv = typeof(bpetsc)
+
+    strategy = GenericAssemblyStrategy(
+      row->dofs.lid_to_gid[row],
+      col->dofs.lid_to_gid[col],
+      row->true,
+      col->true)
+
+    assembler = GenericSparseMatrixAssembler(
+      SparseMatrixBuilder(Tm),
+      ArrayBuilder(Tv),
+      1:PArrays.num_gids(dofs),
+      1:PArrays.num_gids(dofs),
+      strategy)
+
+    numeric_loop_matrix_and_vector!(Apetsc,bpetsc,assembler,matvecdata)
+  end
+  Apetsc = create_from_nz(Apetsc) # This cannot be called at each part in the serial backend
+  bpetsc = create_from_nz(bpetsc) # This cannot be called at each part in the serial backend
+
+
+  # Finalize by hand
+  GridapPETSc.Finalize(bpetsc)
+  GridapPETSc.Finalize(Apetsc)
+  GridapPETSc.Finalize()
+
+  # Save times and results
   display(t)
 
   PArrays.map_main(t.data) do data
