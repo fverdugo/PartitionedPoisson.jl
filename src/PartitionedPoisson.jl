@@ -358,84 +358,58 @@ function _poisson(parts,nc,title,ir,verbose)
   errnorm = norm(r)
   PArrays.toc!(t,"norm(r)")
 
-  ## Now, we assemble the system with PETSc
-  GridapPETSc.Init(args=split("-info"))
+  ## Now, we solve with PETSc
+  tol = 1e-8
+  maxits = 1000
+  options = "-ksp_monitor -ksp_atol 0 -ksp_rtol $tol -ksp_max_it $maxits -ksp_norm_type unpreconditioned -ksp_type cg -pc_type gamg -mg_levels_ksp_type chebyshev -mg_levels_esteig_ksp_type cg -mg_coarse_sub_pc_type cholesky"
+  GridapPETSc.Init(args=split(options))
+  PArrays.toc!(t,"petsc init")
 
-  # Find nnz per row at each proc
-  # TODO a better way to find this? It is not fair to use an already assembled matrix
-  # in particular this can be done from the symbolic CSRR representation
-  part_to_nnz = PArrays.map_parts(A.values) do Al
-    row_to_nnz = zeros(Int32,size(Al,1))
-    for (row,_,_) in PArrays.nziterator(Al)
-      row_to_nnz[row] += Int32(1)
-    end
-    maximum(row_to_nnz)
-  end
+  # Convert to PETSc objects
+  # TODO hide conversions and finalizers
+  Apetsc = PETScMatrix(A)
+  bpetsc = PETScVector(b)
+  xpetsc = PETScVector(x)
 
-  # TODO hide explicit dispatch on the backend
-  backend = PArrays.get_backend(part_to_nnz)
-  if isa(backend,PArrays.MPIBackend)
-    l_nz = get_part(part_to_nnz)
-    norows = get_part(PArrays.map_parts(PArrays.num_oids,rows.partition))
-    nocols = get_part(PArrays.map_parts(PArrays.num_oids,cols.partition))
-  elseif isa(backend,PArrays.SequentialBackend)
-    l_nz = reduce(max,part_to_nnz,init=Int32(0))
-    norows = PArrays.num_gids(rows)
-    nocols = PArrays.num_gids(cols)
-  end
-  ngrows = PArrays.num_gids(rows)
-  ngcols = PArrays.num_gids(cols)
-  d_nz = l_nz # TODO pessimistic, to fix this we need to assemble in PETSc format
-  d_nnz = C_NULL
-  o_nz = l_nz # TODO pessimistic, to fix this we need to assemble in PETSc format
-  o_nnz = C_NULL
-  comm = MPI.COMM_WORLD
+  solver = PETScSolver()
+  ss = symbolic_setup(solver,Apetsc)
+  ns = numerical_setup(ss,Apetsc)
+  solve!(xpetsc,ns,bpetsc)
 
-  # TODO implement this constructor
-  Apetsc = PETScMatrix()
-  @check_error_code PETSC.MatCreateAIJ(
-    comm,norows,nocols,ngrows,ngcols,d_nz,d_nnz,o_nz,o_nnz,Apetsc.mat)
-  GridapPETSc.Init(Apetsc)
+  # Convert back to PVector
+  x = PArrays.PVector(xpetsc,cols)
 
-  bpetsc = PETScVector()
-
-  # Assembly directly on PETSc objects
-  PArrays.map_parts(
-    U,V,dΩ,dofs.partition) do U,V,dΩ,dofs
-
-    dv = get_fe_basis(V)
-    du = get_trial_fe_basis(U)
-    cellmat = ∫( ∇(du)⋅∇(dv) )dΩ
-    cellvec = 0
-    uhd = zero(U)
-    matvecdata = collect_cell_matrix_and_vector(U,V,cellmat,cellvec,uhd)
-
-    Tm = typeof(Apetsc)
-    Tv = typeof(bpetsc)
-
-    strategy = GenericAssemblyStrategy(
-      row->dofs.lid_to_gid[row],
-      col->dofs.lid_to_gid[col],
-      row->true,
-      col->true)
-
-    assembler = GenericSparseMatrixAssembler(
-      SparseMatrixBuilder(Tm),
-      ArrayBuilder(Tv),
-      1:PArrays.num_gids(dofs),
-      1:PArrays.num_gids(dofs),
-      strategy)
-
-    numeric_loop_matrix_and_vector!(Apetsc,bpetsc,assembler,matvecdata)
-  end
-  Apetsc = create_from_nz(Apetsc) # This cannot be called at each part in the serial backend
-  bpetsc = create_from_nz(bpetsc) # This cannot be called at each part in the serial backend
-
-
-  # Finalize by hand
-  GridapPETSc.Finalize(bpetsc)
+  # PETSc objects not needed anymore
   GridapPETSc.Finalize(Apetsc)
+  GridapPETSc.Finalize(bpetsc)
+  GridapPETSc.Finalize(xpetsc)
+  GridapPETSc.Finalize(ns)
+  PArrays.toc!(t,"petsc solve")
+
   GridapPETSc.Finalize()
+  PArrays.toc!(t,"petsc finalize")
+
+  # Build local Finite element functions
+  dof_values .= x
+  PArrays.exchange!(dof_values) # Recover ghost values
+  uh = PArrays.map_parts(dof_values.values,U) do dof_values,U
+    uh = FEFunction(U,dof_values)
+  end
+  PArrays.toc!(t,"FEFunction")
+
+  el2²_conts,eh1²_conts = PArrays.map_parts(uh,dΩ) do uh,dΩ
+    e = uh - u
+    ∑(∫( e*e )dΩ), ∑(∫( e*e + ∇(e)⋅∇(e) )dΩ)
+  end
+
+  el2² = PArrays.reduce_main(+,el2²_conts,init=0.0)
+  eh1² = PArrays.reduce_main(+,eh1²_conts,init=0.0)
+  PArrays.map_main(el2²,eh1²) do el2²,eh1²
+    @show sqrt(el2²), sqrt(eh1²)
+    @assert sqrt(el2²) < 1e-6
+    @assert sqrt(eh1²) < 1e-6
+  end
+  PArrays.toc!(t,"error norms")
 
   # Save times and results
   display(t)

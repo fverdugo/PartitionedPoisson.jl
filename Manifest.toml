@@ -153,8 +153,10 @@ uuid = "56d4f2e9-7ea1-5844-9cf6-b9c51ca7ce8e"
 version = "0.16.4"
 
 [[GridapPETSc]]
-deps = ["Gridap", "Libdl", "LinearAlgebra", "MPI", "PETSc_jll", "SparseArrays", "SparseMatricesCSR"]
-path = "/home/fverdugo/Code/jl/GridapPETSc.jl/"
+deps = ["Gridap", "Libdl", "LinearAlgebra", "MPI", "PETSc_jll", "PartitionedArrays", "SparseArrays", "SparseMatricesCSR"]
+git-tree-sha1 = "ee1f9ee62af86ea4754bd8b1e5b277c9255f4fc0"
+repo-rev = "partitioned_arrays_support"
+repo-url = "https://github.com/gridap/GridapPETSc.jl.git"
 uuid = "bcdc36c2-0c3e-11ea-095a-c9dadae499f1"
 version = "0.3.0"
 
@@ -239,9 +241,9 @@ uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [[LogExpFunctions]]
 deps = ["ChainRulesCore", "DocStringExtensions", "IrrationalConstants", "LinearAlgebra"]
-git-tree-sha1 = "1f5097e3bce576e1cdf6dc9f051ab8c6e196b29e"
+git-tree-sha1 = "86197a8ecb06e222d66797b0c2d2f0cc7b69e42b"
 uuid = "2ab3a3ac-af41-5b50-aa03-7779005ae688"
-version = "0.3.1"
+version = "0.3.2"
 
 [[Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
